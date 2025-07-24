@@ -1,0 +1,21 @@
+{
+  "name": "flight-connector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Leon3854/flight-connector.git"
+  },
+  "keywords": [],
+  "author": "Frad3854",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Leon3854/flight-connector/main"
+  },
+  "homepage": "https://github.com/Leon3854/flight-connector#readme"
+}
