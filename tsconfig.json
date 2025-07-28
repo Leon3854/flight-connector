@@ -4,8 +4,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "baseUrl": "./",
-    "outDir": "./dist",
-    "rootDir": "./",
+    "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,9 +15,7 @@
     "isolatedModules": true,
     "types": ["node"],
     "paths": {
-      "@src/*": ["src/*"],
-      "@src/*.js": ["src/*.ts"],
-      "@services/*": ["src/services/*"]
+      "@src/*": ["src/*"]
     }
   },
   "include": ["src/**/*"],
