@@ -1,9 +1,9 @@
-FROM --platform=linux/arm64 node:18-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Копируем package.json первым для кэширования
-COPY package*.json /
+COPY package*.json ./
 
 # Устанавливаем зависимости
 RUN npm install
@@ -12,8 +12,10 @@ RUN npm install
 COPY . .
 
 # Собираем проект
+# --- так ка у нас идет пока development это не надо
 RUN npm run build
 
 EXPOSE 3202
+CMD ["node", "dist/app.js"]
 # CMD ["npm", "run", "dev"]
-CMD ["node", "--loader", "ts-node/esm", "dist/app.js"]
+# CMD ["node", "--loader", "ts-node/esm", "dist/app.js"]
