@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  # Users Service
+  users:
+    build: ./users-service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=users-db
+      - REDIS_HOST=redis
+    depends_on:
+      - users-db
+      - redis
+
+  users-db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    volumes:
+      - users_postgres_data:/var/lib/postgresql/data
+
+  # Connector Service
+  connector:
+    build: ./connector-tur
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=connector-db
+      - REDIS_HOST=redis
+      - USERS_SERVICE_URL=http://users:3000
+      - TRAVEL_API_KEY=${TRAVEL_API_KEY}
+    depends_on:
+      - connector-db
+      - redis
+      - users
+
+  connector-db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=connector_db
+    volumes:
+      - connector_postgres_data:/var/lib/postgresql/data
+
+  # Общие сервисы
+  redis:
+    image: redis:6
+    volumes:
+      - redis_data:/data
+
+  # RabbitMQ для асинхронной коммуникации (опционально)
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  users_postgres_data:
+  connector_postgres_data:
+  redis_data:

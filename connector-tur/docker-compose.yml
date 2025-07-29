@@ -1,0 +1,56 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "3202:3202"
+    environment:
+      - NODE_ENV=development
+      - PORT=3202
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=123456
+      - DB_NAME=flight-connector
+      - REDIS_HOST=redis
+    volumes:
+      - ./src:/app/src # Только исходный код
+      - ./config:/app/config
+      - /app/node_modules # Отдельный том для зависимостей
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - read_only:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: flight-connector
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgrsql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
