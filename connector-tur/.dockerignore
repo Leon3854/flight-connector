@@ -1,0 +1,7 @@
+node_modules
+.git
+.env
+dist
+notes.txt
+instruction.txt
+.md
