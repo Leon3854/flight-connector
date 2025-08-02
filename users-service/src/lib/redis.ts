@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { User } from "@src/types/users.interface.js";
+import { User } from "../types/users.interface.js";
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || "redis",

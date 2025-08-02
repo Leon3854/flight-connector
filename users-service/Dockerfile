@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Копируем package.json первым для кэширования
 COPY package*.json ./
+COPY tsconfig.json .
 
 # Устанавливаем зависимости
 RUN npm install
@@ -12,10 +13,19 @@ RUN npm install
 COPY . .
 
 # Собираем проект
-# --- так ка у нас идет пока development это не надо
 RUN npm run build
+
+
+
+
+# Копируем package.json в dist и устанавливаем только production зависимости
+# WORKDIR /app/dist
+# COPY ./dist ./dist
+# COPY package*.json ./
+# RUN npm install --production
+
+# Удаляем devDependencies (если нужно)
+RUN npm prune --production
 
 EXPOSE 3202
 CMD ["node", "dist/app.js"]
-# CMD ["npm", "run", "dev"]
-# CMD ["node", "--loader", "ts-node/esm", "dist/app.js"]

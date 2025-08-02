@@ -12,6 +12,7 @@ const knex = _knex(config);
 
 export default knex;
 
+export { knex };
 // логируем результат выполнения миграций
 function logMigrationResults(action: string, result: [number, string[]]) {
   if (result[1].length === 0) {

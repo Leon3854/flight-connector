@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker/locale/ru";
 import { Knex } from "knex";
 import { User } from "../../types/users.interface.js";
-import { userService } from "@src/service/user-service/user.service.js";
-import redis from "@src/lib/redis.js";
+import { userService } from "../../service/user-service/user.service.js";
+import redis from "../../lib/redis.js";
 
 export async function seed(knex: Knex): Promise<void> {
   // Пропускаем в тестовом окружении

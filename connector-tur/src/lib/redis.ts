@@ -1,77 +1,58 @@
 import { Redis } from "ioredis";
-import { User } from "@src/types/users.interface.js";
+import env from "../config/env/env.js";
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST || "redis",
-  port: parseInt(process.env.REDIS_PORT || "6379"),
-});
+class RedisService {
+  private client: Redis;
+  public isConnected = false;
 
-type AsyncFunction = (...args: any[]) => Promise<any>;
+  constructor() {
+    this.client = new Redis({
+      host: env.REDIS_HOST,
+      port: env.REDIS_PORT,
+      // Дополнительные опции при необходимости:
+      // retryStrategy: (times) => Math.min(times * 50, 2000),
+      // reconnectOnError: (err) => {
+      //   const targetErrors = [/READONLY/, /ETIMEDOUT/];
+      //   return targetErrors.some(pattern => pattern.test(err.message));
+      // }
+    });
 
-export function redisCache(
-  keyBuilder: (...args: any[]) => string,
-  ttl: number = 3600
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
-    const originalMethod = descriptor.value as AsyncFunction;
+    this.client.on("connect", () => {
+      this.isConnected = true;
+      console.log("Redis connected successfully");
+    });
 
-    if (typeof originalMethod !== "function") {
-      throw new Error("Decorator can only be applied to methods");
-    }
+    this.client.on("error", (err: Error) => {
+      console.error("Redis Client Error", err);
+      this.isConnected = false;
+    });
 
-    descriptor.value = async function (...args: any[]) {
-      const cacheKey = keyBuilder(...args);
+    this.client.on("end", () => {
+      this.isConnected = false;
+      console.log("Redis connection closed");
+    });
+  }
 
-      try {
-        // Проверяем кэш
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-          return JSON.parse(cached);
-        }
+  async get(key: string): Promise<string | null> {
+    if (!this.isConnected) return null;
+    return this.client.get(key);
+  }
 
-        // Вызываем оригинальный метод
-        const result = await originalMethod.apply(this, args);
+  async setex(key: string, seconds: number, value: string): Promise<void> {
+    if (!this.isConnected) return;
+    await this.client.setex(key, seconds, value);
+  }
 
-        // Кэшируем результат, если он не пустой
-        if (result !== undefined && result !== null) {
-          await redis.setex(cacheKey, ttl, JSON.stringify(result));
-        }
+  async del(key: string): Promise<void> {
+    if (!this.isConnected) return;
+    await this.client.del(key);
+  }
 
-        return result;
-      } catch (error) {
-        console.error(`Cache failed for ${cacheKey}:`, error);
-        // В случае ошибки кэширования, возвращаем оригинальный результат
-        return originalMethod.apply(this, args);
-      }
-    };
-    return descriptor;
-  };
+  async quit(): Promise<void> {
+    if (!this.isConnected) return;
+    await this.client.quit();
+    this.isConnected = false;
+  }
 }
 
-export async function getCachedUser(userId: number): Promise<User | null> {
-  const key = `user:${userId}`;
-  const data = await redis.get(key);
-  return data ? JSON.parse(data) : null;
-}
-
-export async function cacheUser(user: User, ttl: number = 3600): Promise<void> {
-  await redis.setex(`user:${user.id}`, ttl, JSON.stringify(user));
-}
-
-export async function invalidateUserCache(userId: number): Promise<void> {
-  await redis.del(`user:${userId}`);
-}
-
-export async function cacheAllUsers(users: User[]): Promise<void> {
-  const pipeline = redis.pipeline();
-  users.forEach((user) => {
-    pipeline.setex(`user:${user.id}`, 3600, JSON.stringify(user));
-  });
-  await pipeline.exec();
-}
-
-export default redis;
+export const redisService = new RedisService();

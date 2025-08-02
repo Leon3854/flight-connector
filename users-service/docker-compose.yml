@@ -1,24 +1,23 @@
-# version: "3.8"
+version: "3.8"
 
 services:
   app:
-    platform: linux/arm64 # Явно указываем архитектуру для M1
+    platform: linux/arm64
     build:
       context: .
-    ports:
-      - "3202:3202"
+    env_file: .env # Основной источник переменных
     environment:
-      - NODE_ENV=development
-      - PORT=3202
-      - DB_HOST=db
+      - DB_HOST=db # Явно указываем имя сервиса
+      - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=123456
       - DB_NAME=flight-connector
-      - REDIS_HOST=redis
+    ports:
+      - "3202:3202"
     volumes:
-      - ./src:/app/src # Только исходный код
+      - ./src:/app/src
       - ./config:/app/config
-      - /app/node_modules # Отдельный том для зависимостей
+      - /app/node_modules
     restart: unless-stopped
     depends_on:
       redis:
@@ -27,7 +26,7 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:7-alpine # Более новая версия
+    image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
@@ -40,17 +39,17 @@ services:
 
   db:
     platform: linux/arm64
-    image: postgres:15-alpine # Обновленная версия
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER: postgres # Явно указываем значения
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: flight-connector
     ports:
-      - "5432:5432"
+      - "5433:5432" # Внешний:5433, внутренний:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flight-connector"]
       interval: 5s
       timeout: 3s
       retries: 5
