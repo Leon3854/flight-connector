@@ -1,6 +1,6 @@
-import knex from "@src/database/knex.js";
-import { User } from "@src/types/users.interface.js";
-import { cacheUser, redisCache, invalidateUserCache } from "@src/lib/redis.js";
+import knex from "../../database/knex.js";
+import { User } from "../../types/users.interface.js";
+import { cacheUser, redisCache, invalidateUserCache } from "../../lib/redis.js";
 
 export class UserService {
   @redisCache((id: number) => `user:${id}`, 3600)

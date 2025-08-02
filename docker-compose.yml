@@ -1,67 +1,64 @@
-version: "3.8"
-
 services:
-  # Users Service
-  users:
-    build: ./users-service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: flight-connector
+    ports:
+      - "5433:5432" # Измененный порт
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  users-service:
+    build:
+      context: ./users-service
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - DB_HOST=users-db
+      - PORT=3000
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=123456
+      - DB_NAME=flight-connector
+      - DB_PORT=5433
       - REDIS_HOST=redis
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./users-service/src:/app/src
+      - ./users-service/config:/app/config
+      - users_node_modules:/app/node_modules
     depends_on:
-      - users-db
-      - redis
-
-  users-db:
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=users_db
-    volumes:
-      - users_postgres_data:/var/lib/postgresql/data
-
-  # Connector Service
-  connector:
-    build: ./connector-tur
-    ports:
-      - "3001:3000"
-    environment:
-      - NODE_ENV=development
-      - DB_HOST=connector-db
-      - REDIS_HOST=redis
-      - USERS_SERVICE_URL=http://users:3000
-      - TRAVEL_API_KEY=${TRAVEL_API_KEY}
-    depends_on:
-      - connector-db
-      - redis
-      - users
-
-  connector-db:
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=connector_db
-    volumes:
-      - connector_postgres_data:/var/lib/postgresql/data
-
-  # Общие сервисы
-  redis:
-    image: redis:6
-    volumes:
-      - redis_data:/data
-
-  # RabbitMQ для асинхронной коммуникации (опционально)
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  users_postgres_data:
-  connector_postgres_data:
   redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  users_node_modules:
+    driver: local

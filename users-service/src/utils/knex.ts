@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { migrate, seed } from "@src/database/knex.js";
+import { migrate, seed } from "../database/knex.js";
 
 const program = new Command();
 

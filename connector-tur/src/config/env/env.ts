@@ -27,6 +27,8 @@ const envSchema = z.object({
     .regex(/^[0-9]+$/)
     .default("6379")
     .transform((value: string) => parseInt(value)),
+  TRAVEL_API_URL: z.string().url(),
+  TRAVEL_API_KEY: z.string(),
 });
 
 // Проверяем и преобразовываем переменных окружения
@@ -39,5 +41,27 @@ const env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
   APP_PORT: process.env.APP_PORT,
 });
+
+export const envConfig = {
+  travelApi: {
+    baseUrl: env.TRAVEL_API_URL,
+    apiKey: env.TRAVEL_API_KEY,
+  },
+  redis: {
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+  },
+  db: {
+    host: env.POSTGRES_HOST,
+    port: env.POSTGRES_PORT,
+    user: env.POSTGRES_USER,
+    password: env.POSTGRES_PASSWORD,
+    database: env.POSTGRES_DB,
+  },
+  app: {
+    port: env.APP_PORT,
+    env: env.NODE_ENV,
+  },
+} as const;
 
 export default env;
