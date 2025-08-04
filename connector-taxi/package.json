@@ -2,24 +2,34 @@
   "name": "connector-taxi",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dis/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/app.js",
+    "build": "tsc",
+    "migrate:make": "knex migrate:make -x ts --knexfile=src/config/knex/knexfile.ts",
+    "migrate": "knex migrate:latest --knexfile=src/config/knex/knexfile.ts",
+    "migrate:rollback": "knex migrate:rollback --knexfile=src/config/knex/knexfile.ts",
+    "seed": "knex seed:run --knexfile=src/config/knex/knexfile.ts",
+    "dev": "NODE_OPTIONS='--loader ts-node/esm' nodemon src/app.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Frad3854",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "ioredis": "^5.6.1",
     "knex": "^3.1.0",
     "pg": "^8.16.3",
-    "redis": "^5.7.0"
+    "zod": "^4.0.13"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
+    "cross-env": "^10.0.0",
+    "ioredis": "^5.6.1",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
