@@ -1,4 +1,4 @@
-# flight-connector
+# flight-connector & Yandex-taxi-connector
 
 ## Это проект flight-connector — модуль для взаимодействия с внешним API (travel-API)
 
