@@ -15,7 +15,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "isolatedModules": true,
-    "types": ["node"],
+    "types": ["jest", "node"],
     "paths": {
       "@src/*": ["./src/*"]
     }
