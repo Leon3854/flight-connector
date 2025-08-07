@@ -22,7 +22,7 @@ export class TravelApiService {
   async searchFlights(params: FlightSearchParams): Promise<Flight[]> {
     const cacheKey = `flights:${JSON.stringify(params)}`;
 
-    // Пытаемся получить данные из кэша
+    // Сначала пытаемся получить данные из кэша (Redis)
     try {
       const cachedData = await redisService.get(cacheKey);
       if (cachedData) {
@@ -32,15 +32,18 @@ export class TravelApiService {
       console.error("Redis cache error:", error);
     }
 
-    // Если нет в кэше, делаем запрос к API
+    // Если нет в кэше, выполняем запрос к внешнему API
     try {
       const response = await this.api.get("/flights/search", { params });
+
+      // Нормализуем полученные данные
       const flights = this.normalizeFlights(response.data.flights);
 
-      // Сохраняем в кэш на 1 час
+      // Сохраняем в Redis-каш на 1 час
       await redisService.setex(cacheKey, 3600, JSON.stringify(flights));
 
       // Сохраняем в базу данных асинхронно (без ожидания)
+      // Асинхронно сохраняем данные в Postgres через Knex
       this.saveFlightsToDb(flights).catch(console.error);
 
       return flights;

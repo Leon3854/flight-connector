@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # flight-connector & Yandex-taxi-connector
 
 ## Проект на микросервисах для взаимодействия с внешними API (travel-API, Yandex-taxi-API), и сервисом по созданю не существующих пользователей(fakerjs).
@@ -77,3 +78,9 @@ docker-compose up --build
 Запущенные контейнеры (flight-connector-db-1, flight-connector-redis-1, flight-connector-users-service-1) получили статус "Healthy", что означает успешную проверку состояния ("health check").
 
 Однако важно помнить, что успешный запуск контейнеров ещё не гарантирует полное отсутствие ошибок в самом приложении. Если логика работы требует дополнительного мониторинга или тестов, рекомендуется проверить функциональность вручную или автоматическими средствами.
+=======
+# flight-connector
+
+Connector for the flight
+This is the project will'be going more and more
+>>>>>>> unit-test

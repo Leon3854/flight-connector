@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "tsc --project tsconfig.json",
+    "test": "NODE_ENV=test jest",
     "prebuild": "rm -rf dist/",
     "migrate:make": "knex migrate:make -x ts --knexfile=src/config/knex/knexfile.ts",
     "migrate": "knex migrate:latest --knexfile=src/config/knex/knexfile.ts",
@@ -30,8 +31,11 @@
   "devDependencies": {
     "@faker-js/faker": "^9.9.0",
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.1.0",
     "cross-env": "^10.0.0",
+    "jest": "^30.0.5",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
