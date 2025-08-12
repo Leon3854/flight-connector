@@ -1,28 +1,25 @@
 import type { Knex } from "knex";
 import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+// Загружаем переменные окружения
+dotenv.config();
 
 // Получаем __dirname в ES модулях
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
+// Базовые настройки (без connection)
 const commonConfig: Partial<Knex.Config> = {
   client: "pg",
-  connection: {
-    host: "db", // Явно указываем имя сервиса
-    port: 5432,
-    user: "postgres",
-    password: "123456",
-    database: "flight-connector",
-  },
   migrations: {
-    directory: path.resolve(__dirname, "../../database/migrations"),
+    directory: path.resolve(__dirname, "../database/migrations"),
     extension: "ts",
     disableTransactions: false,
     loadExtensions: [".ts"],
   },
   seeds: {
-    directory: path.resolve(__dirname, "../../database/seeds"),
+    directory: path.resolve(__dirname, "../database/seeds"),
     extension: "ts",
     loadExtensions: [".ts"],
   },
@@ -30,26 +27,40 @@ const commonConfig: Partial<Knex.Config> = {
 
 console.log(
   "Migrations dir:",
-  path.resolve(__dirname, "../../database/migrations")
+  path.resolve(__dirname, "../database/migrations")
 );
-console.log("Seeds dir:", path.resolve(__dirname, "../../database/seeds"));
+console.log("Seeds dir:", path.resolve(__dirname, "../database/seeds"));
 
 const config: { [key: string]: Knex.Config } = {
   development: {
     ...commonConfig,
-    connection:
-      process.env.DATABASE_URL ||
-      `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
+    connection: {
+      host: process.env.DB_HOST || "db",
+      port: parseInt(process.env.DB_PORT || "5432"),
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "123456",
+      database: process.env.DB_NAME || "flight-connector",
+    },
     debug: true,
+  },
+  test: {
+    ...commonConfig,
+    connection: {
+      host: process.env.DB_HOST || "test-db",
+      port: parseInt(process.env.DB_PORT || "5432"),
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "123456",
+      database: process.env.DB_NAME || "flight-connector-test",
+    },
   },
   production: {
     ...commonConfig,
     connection: process.env.DATABASE_URL || {
       host: process.env.DB_HOST || "db",
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
       port: parseInt(process.env.DB_PORT || "5432"),
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "123456",
+      database: process.env.DB_NAME || "flight-connector",
     },
     pool: {
       min: 2,
@@ -57,6 +68,6 @@ const config: { [key: string]: Knex.Config } = {
       idleTimeoutMillis: 30000,
     },
   },
-} as { [key: string]: Knex.Config };
+};
 
 export default config;

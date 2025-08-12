@@ -1,17 +1,16 @@
-version: "3.8"
-
 services:
   app:
-    platform: linux/arm64
     build:
       context: .
-    env_file: .env # Основной источник переменных
+      dockerfile: Dockerfile
+    env_file: .env
     environment:
-      - DB_HOST=db # Явно указываем имя сервиса
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=123456
       - DB_NAME=flight-connector
+      - PORT=3202
     ports:
       - "3202:3202"
     volumes:
@@ -25,6 +24,39 @@ services:
       db:
         condition: service_healthy
 
+  db:
+    platform: linux/arm64
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: flight-connector
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flight-connector"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: flight-connector-test
+    ports:
+      - "5434:5432"
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flight-connector-test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     ports:
@@ -37,25 +69,38 @@ services:
       timeout: 3s
       retries: 3
 
-  db:
-    platform: linux/arm64
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres # Явно указываем значения
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: flight-connector
+  test-redis:
+    image: redis:7-alpine
     ports:
-      - "5433:5432" # Внешний:5433, внутренний:5432
+      - "6380:6379"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - test_redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d flight-connector"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 3
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=test
+      - DB_HOST=test-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=123456
+      - DB_NAME=flight-connector-test
+    command: npm test
 
 volumes:
   redis_data:
-    driver: local
   postgres_data:
-    driver: local
+  test_redis_data:
+  test_postgres_data:
