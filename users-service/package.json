@@ -3,17 +3,28 @@
   "version": "1.0.0",
   "description": "The flight connector for the Travel API",
   "main": "dist/app.js",
-  "types": "module",
+  "type": "commonjs",
+  "exports": {
+    "./src/config/knex/knexfile.js": "./src/config/knex/knexfile.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc && npm run postbuild",
+    "postbuild": "mkdir -p dist/config/knex dist/database && cp -r src/config/knex/* dist/config/knex/ && cp -r src/database/* dist/database/",
     "test": "NODE_ENV=test jest",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:docker": "docker-compose run --rm test-runner",
+    "test:docker:unit": "docker-compose run -e NODE_ENV=test --rm test-runner npm test",
+    "migrate:docker": "docker-compose run --rm migrate",
+    "test:clean": "docker-compose down -v --remove-orphans",
     "prebuild": "rm -rf dist/",
     "migrate:make": "knex migrate:make -x ts --knexfile=src/config/knex/knexfile.ts",
     "migrate": "knex migrate:latest --knexfile=src/config/knex/knexfile.ts",
     "migrate:rollback": "knex migrate:rollback --knexfile=src/config/knex/knexfile.ts",
     "seed": "knex seed:run --knexfile=src/config/knex/knexfile.ts",
-    "one-dev": "NODE_OPTIONS='--loader ts-node/esm' nodemon src/app.ts",
     "dev": "nodemon --exec ts-node src/app.ts"
   },
   "repository": {
@@ -23,7 +34,6 @@
   "keywords": [],
   "author": "Frad3854",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/Leon3854/flight-connector/main"
   },
@@ -33,12 +43,15 @@
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.1.0",
+    "@types/node": "^18.19.122",
     "cross-env": "^10.0.0",
+    "inversify": "^7.7.1",
     "jest": "^30.0.5",
     "nodemon": "^3.1.10",
+    "reflect-metadata": "^0.2.2",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "axios": "^1.11.0",
@@ -48,7 +61,6 @@
     "knex": "^3.1.0",
     "pg": "^8.16.3",
     "redis": "^5.6.1",
-    "reflect-metadata": "^0.2.2",
     "zod": "^4.0.10"
   }
 }

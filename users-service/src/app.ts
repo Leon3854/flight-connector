@@ -3,11 +3,16 @@ import express from "express";
 import { userController } from "./service/user-service/user.controller.js";
 import { migrate, seed } from "./database/knex.js";
 import _knex from "./database/knex.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const knex = _knex;
 // Инициализация приложения
 const app = express();
 const port = parseInt(process.env.PORT || "3202");
+
+// Удалите все упоминания import.meta
+const __dirname = process.cwd();
 
 // Middleware
 app.use(express.json());
@@ -50,11 +55,11 @@ const startServer = async () => {
 };
 
 // Автозапуск при прямом вызове
-if (import.meta.url === `file://${process.argv[1]}`) {
-  startServer().catch((err) => {
-    console.error("Fatal error during startup:", err);
-    process.exit(1);
-  });
-}
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   startServer().catch((err) => {
+//     console.error("Fatal error during startup:", err);
+//     process.exit(1);
+//   });
+// }
 
 export { app, startServer };

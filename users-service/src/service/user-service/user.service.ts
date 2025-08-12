@@ -1,7 +1,9 @@
-import knex from "../../database/knex.js";
-import { User } from "../../types/users.interface.js";
-import { cacheUser, redisCache, invalidateUserCache } from "../../lib/redis.js";
+import knex from "../../database/knex";
+import { User } from "../../types/users.interface";
+import { cacheUser, redisCache, invalidateUserCache } from "../../lib/redis";
+import { injectable } from "inversify";
 
+@injectable()
 export class UserService {
   @redisCache((id: number) => `user:${id}`, 3600)
   async getById(id: number): Promise<User | null> {
