@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # flight-connector & Yandex-taxi-connector
 
 ## Проект на микросервисах для взаимодействия с внешними API (travel-API, Yandex-taxi-API), и сервисом по созданю не существующих пользователей(fakerjs).
